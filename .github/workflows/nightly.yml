@@ -1,0 +1,116 @@
+on:
+  schedule:
+    - cron: '23 0 * * *'
+
+name: nightly prerelease
+
+jobs:
+  nightly_release:
+    name: Create nightly release
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout master
+        uses: actions/checkout@master
+
+      - name: install hub binary
+        uses: geertvdc/setup-hub@master
+
+      - name: get cargo pkg version
+        id: version
+        run: |
+          export VERSION=`awk -F\" '/version/ {print $2}' < Cargo.toml`
+          echo ::set-output name=version::$VERSION
+
+      - name: delete existing prelrelease
+        env:
+          GITHUB_USER: ${{ secrets.GITHUB_USER }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          hub release delete nightly
+
+      - name: create nightly release
+        id: create_nightly
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: nightly
+          release_name: ${{ steps.version.outputs.version }}
+          draft: false
+          prerelease: true
+
+  release_assets:
+    name: assets
+    runs-on: ${{ matrix.config.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          # TODO: figure out how to get static aarch64 maybe, and the gnu targets probably have a glibc requirement, not sure its useful to have
+          - {os: ubuntu-latest, toolchain: stable, target: x86_64-unknown-linux-gnu, target_cpu: generic, cross: false}
+          - {os: ubuntu-latest, toolchain: stable, target: aarch64-unknown-linux-gnu, target_cpu: generic, cross: true}
+          - {os: ubuntu-latest, toolchain: stable, target: armv7-unknown-linux-gnueabihf, target_cpu: generic, cross: true}
+          - {os: ubuntu-latest, toolchain: stable,  target: x86_64-unknown-linux-musl, target_cpu: generic, cross: true}
+          - {os: macos-latest, toolchain: stable, target: x86_64-apple-darwin, target_cpu: generic, cross: false}
+          # TODO: which is these is right(er) I don't know windows...?
+          - {os: windows-latest, toolchain: stable-x86_64-pc-windows-gnu, target: x86_64-pc-windows-gnu, target_cpu: generic, cross: false}
+          - {os: windows-latest, toolchain: stable-x86_64-pc-windows-msvc, target: x86_64-pc-windows-msvc, target_cpu: generic, cross: false}
+    steps:
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ matrix.config.toolchain }}
+          target: ${{ matrix.config.target }}
+          override: true
+          default: true
+
+      - name: setup cross
+        uses: actions-rs/cargo@v1
+        if: ${{ matrix.config.cross }}
+        with:
+          command: install
+          args: --version 0.1.16 cross
+
+      - name: get runtime
+        run: |
+          export DATE=`date +'%Y%m%d'`;
+          echo ::set-env name=DATE::$DATE
+        shell: bash
+
+      - name: checkout
+        uses: actions/checkout@v1
+        with:
+          submodules: true
+
+      - name: what version am I?
+        id: version
+        run: |
+          export VERSION=`awk -F\" '/version/ {print $2}' < Cargo.toml`
+          echo ::set-output name=version::$VERSION
+        shell: bash
+
+      - name: build it
+        uses: actions-rs/cargo@v1
+        env:
+          DATE: ${{ env.DATE }}
+        with:
+          use-cross: ${{ matrix.config.cross }}
+          command: rustc
+          args:  --manifest-path Cargo.toml --release --target ${{ matrix.config.target }} --bin testing --no-default-features -- -C target-cpu=${{ matrix.config.target_cpu }} -C lto
+
+      - name: txz unix binaries
+        if: matrix.config.os != 'windows-latest'
+        run: tar -C ./target/${{ matrix.config.target }}/release -czvf testing-${{ steps.version.outputs.version }}.${{ env.DATE }}-${{ matrix.config.target }}-${{ matrix.config.target_cpu }}.tar.gz testing
+
+      - name: zip windows binary
+        if: matrix.config.os == 'windows-latest'
+        run: compress-archive ./target/${{ matrix.config.target }}/release/testing.exe, ./target/${{ matrix.config.target }}/release/testing.exe testing-${{ steps.version.outputs.version }}.${{ env.DATE }}-${{ matrix.config.target }}-${{ matrix.config.target_cpu }}.zip
+
+      - name: upload release binary
+        uses: svenstaro/upload-release-action@v1-release
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: testing-${{ steps.version.outputs.version }}.${{ env.DATE }}-${{ matrix.config.target }}-${{ matrix.config.target_cpu }}.*
+          asset_name: testing-${{ steps.version.outputs.version }}.${{ env.DATE }}-${{ matrix.config.target }}-${{ matrix.config.target_cpu }}
+          tag: nightly
+          file_glob: true
+          overwrite: true

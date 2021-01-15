@@ -99,7 +99,7 @@ jobs:
 
       - name: txz unix binaries
         if: matrix.config.os != 'windows-latest'
-        run: tar -C ./target/${{ matrix.config.target }}/release -czvf testing-${{ steps.version.outputs.version }}.${{ env.DATE }}-${{ matrix.config.target }}-${{ matrix.config.target_cpu }}.tar.gz testing
+        run: tar -C ./target/${{ matrix.config.target }}/release -cJvf testing-${{ steps.version.outputs.version }}.${{ env.DATE }}-${{ matrix.config.target }}-${{ matrix.config.target_cpu }}.tar.gz testing
 
       - name: zip windows binary
         if: matrix.config.os == 'windows-latest'

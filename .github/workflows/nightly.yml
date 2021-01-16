@@ -1,11 +1,12 @@
 on:
   schedule:
     - cron: '23 0 * * *'
+  workflow_dispatch:
 
 name: nightly prerelease
 
 jobs:
-  nightly_release:
+  release:
     name: Create nightly release
     runs-on: ubuntu-latest
     steps:

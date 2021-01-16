@@ -73,7 +73,7 @@ jobs:
 
       - name: get run date
         run: |
-          echo DATE=$(date +'%Y%m%d) | tee -a $GITHUB_ENV
+          echo DATE=$(date +'%Y%m%d') | tee -a $GITHUB_ENV
         shell: bash
 
       - name: checkout

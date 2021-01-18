@@ -103,7 +103,7 @@ jobs:
 
       - name: zip windows binary
         if: matrix.config.os == 'windows-latest'
-        run: compress-archive ./target/${{ matrix.config.target }}/release/testing.exe, matrix.config.target }}/release/testing.exe testing-${{ steps.version.outputs.version }}.${{ env.DATE }}-${{ matrix.config.target }}-${{ matrix.config.target_cpu }}.zip
+        run: compress-archive ./target/${{ matrix.config.target }}/release/testing.exe testing-${{ steps.version.outputs.version }}.${{ env.DATE }}-${{ matrix.config.target }}-${{ matrix.config.target_cpu }}.zip
 
       - name: upload release binary
         uses: svenstaro/upload-release-action@v1-release

@@ -98,9 +98,13 @@ jobs:
           command: rustc
           args:  --manifest-path Cargo.toml --release --target ${{ matrix.config.target }} --bin testing --no-default-features -- -C target-cpu=${{ matrix.config.target_cpu }}
 
-      - name: txz unix binaries
-        if: matrix.config.os != 'windows-latest'
+      - name: txz linux binary
+        if: matrix.config.os == 'ubuntu-latest'
         run: tar -C ./target/${{ matrix.config.target }}/release -cJvf testing-${{ steps.version.outputs.version }}.${{ env.DATE }}-${{ matrix.config.target }}-${{ matrix.config.target_cpu }}.tar.xz testing
+
+      - name: tgz macos binary
+        if: matrix.config.os == 'macos-latest'
+        run: tar -C ./target/${{ matrix.config.target }}/release -czvf testing-${{ steps.version.outputs.version }}.${{ env.DATE }}-${{ matrix.config.target }}-${{ matrix.config.target_cpu }}.tar.gz testing
 
       - name: zip windows binary
         if: matrix.config.os == 'windows-latest'

@@ -40,7 +40,7 @@ jobs:
           tag_name: latest
           release_name: latest
           draft: false
-          latest: true
+          prerelease: true
 
   release_assets:
     name: assets

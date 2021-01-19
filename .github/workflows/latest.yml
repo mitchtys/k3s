@@ -5,11 +5,11 @@ on:
       - master
       - main
 
-name: prerelease
+name: latest
 
 jobs:
-  prerelease:
-    name: create prerelease assets
+  latest:
+    name: create latest assets
     runs-on: ubuntu-latest
     steps:
       - name: checkout master
@@ -24,23 +24,23 @@ jobs:
           export VERSION=$(awk -F\" '/version/ {print $2}' < Cargo.toml)
           echo ::set-output name=version::$VERSION
 
-      - name: delete existing prerelease assets
+      - name: delete existing latest assets
         env:
           GITHUB_USER: ${{ secrets.GITHUB_USER }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          hub release delete prerelease || :
+          hub release delete latest || :
 
-      - name: create new prerelease assets
-        id: create_prerelease
+      - name: create new latest assets
+        id: create_latest
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: prerelease
-          release_name: ${{ steps.version.outputs.version }}
+          tag_name: latest
+          release_name: latest
           draft: false
-          prerelease: true
+          latest: true
 
   release_assets:
     name: assets
@@ -118,6 +118,6 @@ jobs:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: testing-${{ steps.version.outputs.version }}.${{ env.DATE }}-${{ matrix.config.target }}-${{ matrix.config.target_cpu }}.*
           asset_name: testing-${{ steps.version.outputs.version }}.${{ env.DATE }}-${{ matrix.config.target }}-${{ matrix.config.target_cpu }}
-          tag: prerelease
+          tag: latest
           file_glob: true
           overwrite: true

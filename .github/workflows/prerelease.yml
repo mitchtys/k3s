@@ -1,13 +1,15 @@
 on:
-  schedule:
-    - cron: '23 0 * * *'
   workflow_dispatch:
+  push:
+    branches:
+      - master
+      - main
 
-name: nightly prerelease
+name: prerelease
 
 jobs:
-  release:
-    name: Create nightly release
+  prerelease:
+    name: create prerelease assets
     runs-on: ubuntu-latest
     steps:
       - name: checkout master
@@ -22,14 +24,14 @@ jobs:
           export VERSION=$(awk -F\" '/version/ {print $2}' < Cargo.toml)
           echo ::set-output name=version::$VERSION
 
-      - name: delete existing prelrelease
+      - name: delete existing prerelease assets
         env:
           GITHUB_USER: ${{ secrets.GITHUB_USER }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           hub release delete nightly
 
-      - name: create nightly release
+      - name: create new prerelease assets
         id: create_nightly
         uses: actions/create-release@v1
         env:
@@ -72,7 +74,7 @@ jobs:
           command: install
           args: --version 0.1.16 cross
 
-      - name: get run date
+      - name: get run datetime
         run: |
           echo DATE=$(date +'%Y%m%d') | tee -a $GITHUB_ENV
         shell: bash
@@ -82,14 +84,14 @@ jobs:
         with:
           submodules: true
 
-      - name: what version am I?
+      - name: what cargo version am I?
         id: version
         run: |
           export VERSION=$(awk -F\" '/version/ {print $2}' < Cargo.toml)
           echo ::set-output name=version::$VERSION
         shell: bash
 
-      - name: build it
+      - name: build
         uses: actions-rs/cargo@v1
         env:
           DATE: ${{ env.DATE }}

@@ -28,7 +28,7 @@ jobs:
           GITHUB_USER: ${{ secrets.GITHUB_USER }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          hub release delete release
+          hub release delete release || :
 
       - name: create new release assets
         id: create_release

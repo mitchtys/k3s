@@ -113,6 +113,6 @@ jobs:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: testing-${{ steps.version.outputs.version }}.${{ env.DATE }}-${{ matrix.config.target }}-${{ matrix.config.target_cpu }}.*
           asset_name: testing-${{ steps.version.outputs.version }}.${{ env.DATE }}-${{ matrix.config.target }}-${{ matrix.config.target_cpu }}
-          tag: release
+          tag: ${{ github.event.ref }}
           file_glob: true
           overwrite: true

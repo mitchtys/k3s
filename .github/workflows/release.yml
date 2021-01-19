@@ -69,11 +69,6 @@ jobs:
           command: install
           args: --version 0.1.16 cross
 
-      - name: get run datetime
-        run: |
-          echo DATE=$(date +'%Y%m%d') | tee -a $GITHUB_ENV
-        shell: bash
-
       - name: checkout
         uses: actions/checkout@v1
         with:
@@ -97,15 +92,15 @@ jobs:
 
       - name: txz linux binary
         if: matrix.config.os == 'ubuntu-latest'
-        run: tar -C ./target/${{ matrix.config.target }}/release -cJvf testing-${{ steps.version.outputs.version }}.${{ env.DATE }}-${{ matrix.config.target }}-${{ matrix.config.target_cpu }}.tar.xz testing
+        run: tar -C ./target/${{ matrix.config.target }}/release -cJvf testing-${{ steps.version.outputs.version }}-${{ matrix.config.target }}-${{ matrix.config.target_cpu }}.tar.xz testing
 
       - name: tgz macos binary
         if: matrix.config.os == 'macos-latest'
-        run: tar -C ./target/${{ matrix.config.target }}/release -czvf testing-${{ steps.version.outputs.version }}.${{ env.DATE }}-${{ matrix.config.target }}-${{ matrix.config.target_cpu }}.tar.gz testing
+        run: tar -C ./target/${{ matrix.config.target }}/release -czvf testing-${{ steps.version.outputs.version }}-${{ matrix.config.target }}-${{ matrix.config.target_cpu }}.tar.gz testing
 
       - name: zip windows binary
         if: matrix.config.os == 'windows-latest'
-        run: compress-archive ./target/${{ matrix.config.target }}/release/testing.exe testing-${{ steps.version.outputs.version }}.${{ env.DATE }}-${{ matrix.config.target }}-${{ matrix.config.target_cpu }}.zip
+        run: compress-archive ./target/${{ matrix.config.target }}/release/testing.exe testing-${{ steps.version.outputs.version }}-${{ matrix.config.target }}-${{ matrix.config.target_cpu }}.zip
 
       - name: upload release binary
         uses: svenstaro/upload-release-action@v1-release

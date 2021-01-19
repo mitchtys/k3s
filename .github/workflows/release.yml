@@ -83,8 +83,6 @@ jobs:
 
       - name: build
         uses: actions-rs/cargo@v1
-        env:
-          DATE: ${{ env.DATE }}
         with:
           use-cross: ${{ matrix.config.cross }}
           command: rustc
@@ -106,8 +104,8 @@ jobs:
         uses: svenstaro/upload-release-action@v1-release
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: testing-${{ steps.version.outputs.version }}.${{ env.DATE }}-${{ matrix.config.target }}-${{ matrix.config.target_cpu }}.*
-          asset_name: testing-${{ steps.version.outputs.version }}.${{ env.DATE }}-${{ matrix.config.target }}-${{ matrix.config.target_cpu }}
+          file: testing-${{ steps.version.outputs.version }}-${{ matrix.config.target }}-${{ matrix.config.target_cpu }}.*
+          asset_name: testing-${{ steps.version.outputs.version }}-${{ matrix.config.target }}-${{ matrix.config.target_cpu }}
           tag: ${{ steps.version.outputs.version }}
           file_glob: true
           overwrite: true
